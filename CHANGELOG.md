@@ -1,3 +1,9 @@
+## 1.1.1
+
+- Works with `archive` 3 as well as 4 (only the build tool uses it), so
+  mini apps on Flame's tiled maps, still on archive 3, can depend on
+  litehost.
+
 ## 1.1.0
 
 - `LiteHost.wifi.signal()` (feature `wifi.signal`, SetLiteWeb 1.6.4+,

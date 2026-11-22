@@ -3,7 +3,7 @@ description: >-
   Use SetLiteWeb's phone features (location, QR scanner, Bluetooth, sign-in,
   profile, storage and more) from a LiteStore mini app, with typed Dart APIs
   and a mock host for development in a normal browser.
-version: 1.1.0
+version: 1.1.1
 repository: https://github.com/SetliteWeb/litehost
 issue_tracker: https://github.com/SetliteWeb/litehost/issues
 
@@ -14,7 +14,8 @@ platforms:
   web:
 
 dependencies:
-  archive: ^4.0.0
+  # 3.x too: mini apps using Flame's tiled maps are still on archive 3.
+  archive: '>=3.3.0 <5.0.0'
   crypto: ^3.0.3
   path: ^1.9.0
   web: ^1.1.0

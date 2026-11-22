@@ -86,7 +86,9 @@ PackagedApp packageApp({
     ArchiveFile('litestore.json', manifestBytes.length, manifestBytes)
       ..lastModTime = stamp,
   );
-  final zipBytes = ZipEncoder().encode(archive);
+  // Nullable in archive 3, not in 4: works with both.
+  final List<int>? encoded = ZipEncoder().encode(archive);
+  final zipBytes = encoded!;
   if (zipBytes.length > maxBundleBytes) {
     throw StateError(
       'The bundle is ${(zipBytes.length / 1048576).toStringAsFixed(1)} MB; '
