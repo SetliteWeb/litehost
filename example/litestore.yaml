@@ -1,0 +1,27 @@
+id: com.setliteweb.litehost.example
+name: LiteHost Demo
+version: 1.0.0
+summary: Tries every SetLiteWeb feature, to test hosts and learn the API.
+developer: SetLiteWeb
+category: developer
+requires: []
+optional:
+  - location
+  - wifi
+  - bluetooth
+  - clipboard.read
+  - clipboard.write
+  - profile.name
+  - profile.phone
+  - profile.email
+  - auth.token
+  - scanner
+  - image.pick
+  - share
+  - haptics
+  - storage
+  - device.info
+  - links
+  - notifications
+  - biometric
+  - contacts.pick

@@ -1,0 +1,25 @@
+name: litehost
+description: >-
+  Use SetLiteWeb's phone features (location, QR scanner, Bluetooth, sign-in,
+  profile, storage and more) from a LiteStore mini app, with typed Dart APIs
+  and a mock host for development in a normal browser.
+version: 1.0.0
+repository: https://github.com/SetliteWeb/litehost
+issue_tracker: https://github.com/SetliteWeb/litehost/issues
+
+environment:
+  sdk: ^3.8.0
+
+platforms:
+  web:
+
+dependencies:
+  archive: ^4.0.0
+  crypto: ^3.0.3
+  path: ^1.9.0
+  web: ^1.1.0
+  yaml: ^3.1.2
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.25.0

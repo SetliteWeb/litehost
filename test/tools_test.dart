@@ -1,0 +1,135 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:archive/archive.dart';
+import 'package:crypto/crypto.dart';
+import 'package:litehost/manifest.dart';
+import 'package:litehost/src/tool/check.dart';
+import 'package:litehost/src/tool/cli.dart';
+import 'package:litehost/src/tool/package.dart';
+import 'package:test/test.dart';
+
+const _yaml = '''
+id: com.example.duka
+name: Duka
+version: 1.2.0
+summary: Order from shops near you.
+requires: [location]
+optional: [scanner, profile.name, storage, bluetooth@2]
+''';
+
+void main() {
+  late Directory tmp;
+  setUp(() => tmp = Directory.systemTemp.createTempSync('litehost'));
+  tearDown(() => tmp.deleteSync(recursive: true));
+
+  group('manifest', () {
+    test('parses', () {
+      final m = LiteStoreManifest.parse(_yaml);
+      expect(m.errors(), isEmpty);
+      expect(m.declaredIds, containsAll(['location', 'scanner', 'bluetooth']));
+      expect(m.toJson()['optional'], contains('bluetooth@2'));
+    });
+
+    test('reports problems', () {
+      final m = LiteStoreManifest.parse(
+        'id: "bad id"\nname: ""\nversion: one\n'
+        'requires: [nfc]\noptional: [nfc]',
+      );
+      expect(
+        m.errors().join('\n'),
+        allOf(
+          contains('id'),
+          contains('name'),
+          contains('version'),
+          contains('both'),
+        ),
+      );
+      expect(m.warnings().join('\n'), contains('unknown'));
+    });
+  });
+
+  test('check finds undeclared and unused features', () {
+    final lib = Directory('${tmp.path}/lib')..createSync();
+    File('${lib.path}/main.dart').writeAsStringSync('''
+final a = LiteHost.location.get();
+final b = LiteHost.wifi.get();
+final c = LiteHost.profile.get({ProfileField.name, ProfileField.phone});
+final d = LiteHost.clipboard.write('x');
+final e = ProfileField.values;
+// LiteHost.camera.request();  (comment: ignored)
+''');
+    final r = checkUses(LiteStoreManifest.parse(_yaml), scanUses(lib));
+    expect(
+      {for (final u in r.undeclared) u.feature.id},
+      {'wifi', 'profile.phone', 'profile.email', 'clipboard.write'},
+    );
+    expect(r.unused, containsAll(['scanner', 'storage', 'bluetooth']));
+    expect(r.ok, isFalse);
+  });
+
+  test('package makes a reproducible zip with listing', () {
+    final site = Directory('${tmp.path}/web')..createSync();
+    File('${site.path}/index.html').writeAsStringSync('<html></html>');
+    Directory('${site.path}/assets').createSync();
+    File('${site.path}/assets/a.txt').writeAsStringSync('A');
+    final m = LiteStoreManifest.parse(_yaml);
+    final one = packageApp(
+      manifest: m,
+      site: site,
+      out: Directory('${tmp.path}/o1'),
+      bundleUrlBase: 'https://cdn.example.com/apps',
+    );
+    final two = packageApp(
+      manifest: m,
+      site: site,
+      out: Directory('${tmp.path}/o2'),
+    );
+    expect(one.sha256, two.sha256, reason: 'same input, same zip');
+    expect(sha256.convert(one.zip.readAsBytesSync()).toString(), one.sha256);
+    final names = ZipDecoder()
+        .decodeBytes(one.zip.readAsBytesSync())
+        .map((f) => f.name);
+    expect(
+      names,
+      containsAll(['index.html', 'assets/a.txt', 'litestore.json']),
+    );
+    final listing = jsonDecode(one.listing.readAsStringSync()) as Map;
+    expect(
+      listing['bundleUrl'],
+      'https://cdn.example.com/apps/com.example.duka-1.2.0.zip',
+    );
+    expect(listing['bundleSha256'], one.sha256);
+    expect(listing['requires'], ['location']);
+  });
+
+  test('build --dir packages an existing site and checks first', () async {
+    File('${tmp.path}/litestore.yaml').writeAsStringSync(_yaml);
+    Directory('${tmp.path}/lib').createSync();
+    File(
+      '${tmp.path}/lib/main.dart',
+    ).writeAsStringSync('LiteHost.location.get();');
+    final site = Directory('${tmp.path}/dist')..createSync();
+    File('${site.path}/index.html').writeAsStringSync('<html></html>');
+    final log = _Log();
+    expect(await runBuild(['--dir', 'dist'], tmp, log), 0, reason: log.text);
+    expect(
+      File(
+        '${tmp.path}/build/litestore/com.example.duka-1.2.0.zip',
+      ).existsSync(),
+      isTrue,
+    );
+
+    File('${tmp.path}/lib/main.dart').writeAsStringSync('LiteHost.wifi.get();');
+    expect(await runBuild(['--dir', 'dist'], tmp, _Log()), 1);
+  });
+}
+
+class _Log implements IOSink {
+  final _b = StringBuffer();
+  String get text => _b.toString();
+  @override
+  void writeln([Object? o = '']) => _b.writeln(o);
+  @override
+  dynamic noSuchMethod(Invocation i) => null;
+}
