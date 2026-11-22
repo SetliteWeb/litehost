@@ -1,27 +1,34 @@
 id: com.setliteweb.litehost.example
-name: LiteHost Demo
+name: Feature Lab
 version: 1.0.0
-summary: Tries every SetLiteWeb feature, to test hosts and learn the API.
+summary: Tests every SetLiteWeb mini app feature, one card each.
 developer: SetLiteWeb
 category: developer
+
 requires: []
 optional:
   - location
-  - wifi
+  - camera
+  - microphone
   - bluetooth
+  - wifi
+  - wifi.signal
   - clipboard.read
   - clipboard.write
   - profile.name
   - profile.phone
   - profile.email
   - auth.token
+  - auth.browser
   - scanner
   - image.pick
   - share
+  - open.url
+  - links
   - haptics
+  - screen.keepOn
   - storage
   - device.info
-  - links
   - notifications
   - biometric
   - contacts.pick

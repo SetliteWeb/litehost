@@ -1,3 +1,10 @@
+## 1.1.2
+
+- The example is now Feature Lab: one card per feature (every litehost API,
+  including wifi.signal, notifications, biometric, contacts, browser
+  sign-in, camera and microphone streams), with results, error codes
+  explained, timings, an event log and "Run safe tests". No API changes.
+
 ## 1.1.1
 
 - Works with `archive` 3 as well as 4 (only the build tool uses it), so
