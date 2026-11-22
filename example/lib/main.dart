@@ -194,8 +194,14 @@ class _LabScreenState extends State<LabScreen> {
     ('You', [
       Test('profile', 'Profile', 'profile.name, profile.phone, profile.email', Icons.person_outline_rounded, 'Asks which fields to share, one by one.', [
         ('Name + phone + email', () async {
-          final p = await LiteHost.profile.get(ProfileField.values.toSet(), reason: 'Feature Lab is testing your profile.');
+          final p = await LiteHost.profile.get({ProfileField.name, ProfileField.phone, ProfileField.email}, reason: 'Feature Lab is testing your profile.');
           return 'id ${p.id}\nname ${p.name ?? '–'} · phone ${p.phone ?? '–'} · email ${p.email ?? '–'}';
+        }),
+      ], asks: true),
+      Test('profile.photo', 'Profile photo', 'profile.photo', Icons.account_circle_outlined, 'Asks to share your SetLiteWeb profile photo.', [
+        ('Get photo', () async {
+          final p = await LiteHost.profile.get({ProfileField.photo}, reason: 'Feature Lab is testing your profile photo.');
+          return p.photoUrl == null ? 'no photo (not shared, or none set)' : 'photo ${p.photoUrl}';
         }),
       ], asks: true),
       Test('auth.token', 'Sign in with SetLiteWeb', 'auth.token', Icons.key_rounded, 'A signed token (5 min) for an app server to check.', [

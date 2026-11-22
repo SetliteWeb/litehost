@@ -62,7 +62,7 @@ final e = ProfileField.values;
     final r = checkUses(LiteStoreManifest.parse(_yaml), scanUses(lib));
     expect(
       {for (final u in r.undeclared) u.feature.id},
-      {'wifi', 'profile.phone', 'profile.email', 'clipboard.write'},
+      {'wifi', 'profile.phone', 'profile.email', 'profile.photo', 'clipboard.write'},
     );
     expect(r.unused, containsAll(['scanner', 'storage', 'bluetooth']));
     expect(r.ok, isFalse);

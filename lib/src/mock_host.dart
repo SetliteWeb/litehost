@@ -36,6 +36,7 @@ class MockHost implements HostTransport {
     this.profileName = 'Jane Doe',
     this.profilePhone = '+15555550100',
     this.profileEmail = 'jane@example.com',
+    this.profilePhoto = 'https://picsum.photos/id/64/400/400.jpg',
   }) : declared = declared ?? Feature.values.toSet(),
        available = available ?? Feature.values.toSet(),
        denied = denied ?? {} {
@@ -62,6 +63,7 @@ class MockHost implements HostTransport {
   String? profileName;
   String? profilePhone;
   String? profileEmail;
+  String? profilePhoto;
 
   /// The pretend torch.
   bool torchOn = false;
@@ -370,6 +372,7 @@ class MockHost implements HostTransport {
         'name': (Feature.profileName, profileName),
         'phone': (Feature.profilePhone, profilePhone),
         'email': (Feature.profileEmail, profileEmail),
+        'photo': (Feature.profilePhoto, profilePhoto),
       };
       for (final f in fields) {
         final entry = byField[f];

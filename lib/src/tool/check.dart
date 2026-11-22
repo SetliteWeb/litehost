@@ -63,6 +63,7 @@ const _profile = {
   'name': Feature.profileName,
   'phone': Feature.profilePhone,
   'email': Feature.profileEmail,
+  'photo': Feature.profilePhoto,
 };
 
 /// Dart, and JavaScript for apps that call `window.LiteHost` directly.

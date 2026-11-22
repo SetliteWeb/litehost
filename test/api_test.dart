@@ -172,6 +172,15 @@ void main() {
     );
   });
 
+  test('the profile photo is a URL, only when allowed', () async {
+    LiteHost.useMock(mock = MockHost());
+    final p = await LiteHost.profile.get({ProfileField.photo});
+    expect(p.photoUrl, startsWith('https://'));
+    expect(p.name, isNull, reason: 'only what was asked');
+    LiteHost.useMock(mock = MockHost(denied: {Feature.profilePhoto}));
+    expect((await LiteHost.profile.get({ProfileField.photo})).photoUrl, isNull);
+  });
+
   test('storage, including JSON helpers', () async {
     await LiteHost.storage.setJson('cart', {
       'items': [1, 2],

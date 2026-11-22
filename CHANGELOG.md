@@ -1,3 +1,11 @@
+## 1.4.0
+
+For SetLiteWeb 1.6.11+:
+
+- `ProfileField.photo` / feature `profile.photo` (asks): the user's
+  profile photo as `Profile.photoUrl`, an https URL of a square JPEG.
+- `MockHost(profilePhoto: ...)` and `litehost:check` know it.
+
 ## 1.3.1
 
 - Example (Feature Lab) covers every 1.3.0 feature. No API changes.

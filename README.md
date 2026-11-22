@@ -98,7 +98,7 @@ The output in `build/litestore/` is what you upload to LiteStore.
 | `LiteHost.screen.capture()` | `screen.capture` | no (your app's screen only; 1.6.7+) |
 | `LiteHost.pip.enter()` / `auto()` | `pip` | no (1.6.7+) |
 | `LiteHost.clipboard.read()` / `write()` | `clipboard.read` / `clipboard.write` | read only |
-| `LiteHost.profile.get({...})` | `profile.name` / `.phone` / `.email` | yes, per field |
+| `LiteHost.profile.get({...})` | `profile.name` / `.phone` / `.email` / `.photo` | yes, per field |
 | `LiteHost.auth.token()` | `auth.token` | yes |
 | `LiteHost.auth.browser(url)` | `auth.browser` | no (browser sign-in) |
 | `LiteHost.scanner.scan()` | `scanner` | no (host screen) |

@@ -168,24 +168,35 @@ class WifiSignal {
       : 'WifiSignal(not on Wi-Fi)';
 }
 
-enum ProfileField { name, phone, email }
+enum ProfileField { name, phone, email, photo }
 
 /// Only the fields the user agreed to share. [id] is stable for this user
 /// in this app, but can't be matched across apps.
 class Profile {
-  const Profile({required this.id, this.name, this.phone, this.email});
+  const Profile({
+    required this.id,
+    this.name,
+    this.phone,
+    this.email,
+    this.photoUrl,
+  });
 
   factory Profile.fromJson(Map<String, Object?> j) => Profile(
     id: asString(j['id']),
     name: asNullableString(j['name']),
     phone: asNullableString(j['phone']),
     email: asNullableString(j['email']),
+    photoUrl: asNullableString(j['photo']),
   );
 
   final String id;
   final String? name;
   final String? phone;
   final String? email;
+
+  /// The profile photo: an https URL of a square JPEG (400×400 on
+  /// SetLiteWeb 1.6.11+). Null if not shared or the user has none.
+  final String? photoUrl;
 }
 
 /// "Sign in with SetLiteWeb": send [token] to your own server, which

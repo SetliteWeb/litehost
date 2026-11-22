@@ -21,6 +21,7 @@ enum Feature {
   profileName('profile.name', asksUser: true),
   profilePhone('profile.phone', asksUser: true),
   profileEmail('profile.email', asksUser: true),
+  profilePhoto('profile.photo', asksUser: true),
   notifications('notifications', asksUser: true),
   authToken('auth.token', asksUser: true),
   authBrowser('auth.browser'),

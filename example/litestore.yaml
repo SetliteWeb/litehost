@@ -27,6 +27,7 @@ optional:
   - profile.name
   - profile.phone
   - profile.email
+  - profile.photo
   - auth.token
   - auth.browser
   - scanner
