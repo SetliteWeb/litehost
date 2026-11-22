@@ -92,6 +92,11 @@ The output in `build/litestore/` is what you upload to LiteStore.
 | `LiteHost.sensors.list()` / `watch()` | `sensors` | no (up to 50 Hz, 4 at once; 1.6.6+) |
 | `LiteHost.gestures.watch()` | `gestures` | no (shake, flip, tilt, wave; 1.6.6+) |
 | `LiteHost.device.battery()` | `device.info` | no (1.6.6+) |
+| `LiteHost.location.track()` | `location.background` | yes (notification while it runs; uploads to your server; 1.6.7+) |
+| `LiteHost.phone.call()` | `phone.call` | no (SetLiteWeb confirms each call; 1.6.7+) |
+| `LiteHost.sms.otp()` | `sms.otp` | no (Google's own prompt per SMS; 1.6.7+) |
+| `LiteHost.screen.capture()` | `screen.capture` | no (your app's screen only; 1.6.7+) |
+| `LiteHost.pip.enter()` / `auto()` | `pip` | no (1.6.7+) |
 | `LiteHost.clipboard.read()` / `write()` | `clipboard.read` / `clipboard.write` | read only |
 | `LiteHost.profile.get({...})` | `profile.name` / `.phone` / `.email` | yes, per field |
 | `LiteHost.auth.token()` | `auth.token` | yes |

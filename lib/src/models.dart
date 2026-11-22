@@ -505,3 +505,67 @@ class NfcTagInfo {
   final bool? writable;
   final int? maxSize;
 }
+
+/// One background location fix ([LiteHost.location.track]).
+class LocationFix {
+  const LocationFix({
+    required this.latitude,
+    required this.longitude,
+    required this.accuracyMeters,
+    this.speed,
+    this.heading,
+    this.altitude,
+    this.at,
+  });
+
+  factory LocationFix.fromJson(Map<String, Object?> j) => LocationFix(
+    latitude: (j['latitude'] as num).toDouble(),
+    longitude: (j['longitude'] as num).toDouble(),
+    accuracyMeters: (j['accuracy'] as num?)?.toDouble() ?? 0,
+    speed: (j['speed'] as num?)?.toDouble(),
+    heading: (j['heading'] as num?)?.toDouble(),
+    altitude: (j['altitude'] as num?)?.toDouble(),
+    at: DateTime.tryParse(asString(j['at'])),
+  );
+
+  final double latitude;
+  final double longitude;
+  final double accuracyMeters;
+
+  /// m/s.
+  final double? speed;
+
+  /// Degrees from north.
+  final double? heading;
+  final double? altitude;
+  final DateTime? at;
+}
+
+/// A one-time-code SMS the user let the app read.
+class OtpSms {
+  const OtpSms({required this.sms, this.code});
+  factory OtpSms.fromJson(Map<String, Object?> j) =>
+      OtpSms(sms: asString(j['sms']), code: asNullableString(j['code']));
+
+  final String sms;
+
+  /// The code found in it (4-8 digits), if any.
+  final String? code;
+}
+
+class Screenshot {
+  const Screenshot({
+    required this.png,
+    required this.width,
+    required this.height,
+  });
+  factory Screenshot.fromJson(Map<String, Object?> j) => Screenshot(
+    png: base64Decode(asString(j['data'])),
+    width: (j['width'] as num?)?.toInt() ?? 0,
+    height: (j['height'] as num?)?.toInt() ?? 0,
+  );
+
+  final Uint8List png;
+  final int width;
+  final int height;
+}

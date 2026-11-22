@@ -108,6 +108,36 @@ void main() {
     );
   });
 
+  test(
+    'background location, calls, OTP, screenshot, picture-in-picture',
+    () async {
+      final fixes = await LiteHost.location
+          .track(
+            interval: const Duration(seconds: 5),
+            uploadUrl: Uri.parse('https://rides.example/loc'),
+            uploadHeaders: {'Authorization': 'Bearer t'},
+          )
+          .take(2)
+          .toList();
+      expect(fixes, hasLength(2));
+      expect(fixes.last.latitude, greaterThan(fixes.first.latitude));
+      expect(fixes.first.speed, 9.5);
+      final start = mock.calls.firstWhere((c) => c.$1 == 'location.track').$2;
+      expect(start['upload'], {
+        'url': 'https://rides.example/loc',
+        'headers': {'Authorization': 'Bearer t'},
+      });
+      expect(mock.calls.map((c) => c.$1), contains('location.stopTracking'));
+      expect(Feature.locationBackground.asksUser, isTrue);
+      expect(await LiteHost.phone.call('0712345678'), 'called');
+      expect((await LiteHost.sms.otp()).code, '482913');
+      final shot = await LiteHost.screen.capture();
+      expect(shot.png.sublist(1, 4), [0x50, 0x4E, 0x47]); // "PNG"
+      expect(await LiteHost.pip.enter(), isTrue);
+      await LiteHost.pip.auto(true);
+    },
+  );
+
   test('declared, available and denied features are enforced', () async {
     LiteHost.useMock(mock = MockHost(declared: {Feature.storage}));
     await expectLater(

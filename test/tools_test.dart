@@ -88,7 +88,7 @@ const s = await LiteHost.wifi.signal();
     expect(r.unused, isEmpty);
   });
 
-  test('check knows the 1.2 features', () {
+  test('check knows the 1.2 and 1.3 features', () {
     final lib = Directory('${tmp.path}/lib2')..createSync();
     File('${lib.path}/main.dart').writeAsStringSync('''
 LiteHost.torch.set(true);
@@ -98,6 +98,11 @@ LiteHost.gestures.watch();
 LiteHost.wifi.enable();
 LiteHost.bluetooth.enable();
 LiteHost.device.battery();
+LiteHost.location.track();
+LiteHost.phone.call('1');
+LiteHost.sms.otp();
+LiteHost.screen.capture();
+LiteHost.pip.enter();
 ''');
     expect(
       {for (final u in scanUses(lib)) u.feature.id},
@@ -109,6 +114,11 @@ LiteHost.device.battery();
         'wifi.enable',
         'bluetooth',
         'device.info',
+        'location.background',
+        'phone.call',
+        'sms.otp',
+        'screen.capture',
+        'pip',
       },
     );
   });

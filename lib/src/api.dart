@@ -72,6 +72,10 @@ abstract final class LiteHost {
   static const nfc = NfcApi._();
   static const sensors = SensorsApi._();
   static const gestures = GesturesApi._();
+  static const phone = PhoneApi._();
+  static const sms = SmsApi._();
+  static const screen = ScreenApi._();
+  static const pip = PipApi._();
 
   /// Opens the phone's share sheet.
   static Future<void> share(String text, {String? subject}) =>
@@ -204,6 +208,37 @@ class LocationApi {
         asMap(await _call('location.get', {'precise': precise}, reason)) ??
             const {},
       );
+
+  /// Keeps sending fixes while your app is in the background (feature
+  /// `location.background`, asks; SetLiteWeb 1.6.7+, Android). A
+  /// notification shows while it runs. Each fix also goes to [uploadUrl]
+  /// (https) as `POST {"appId", "points": [...]}` with [uploadHeaders]
+  /// (Authorization or X-…), queued while offline: your page is paused in
+  /// the background, so that's how your server stays up to date. Cancel the
+  /// subscription to stop.
+  Stream<LocationFix> track({
+    Duration interval = const Duration(seconds: 10),
+    int distanceMeters = 10,
+    Uri? uploadUrl,
+    Map<String, String> uploadHeaders = const {},
+    String? reason,
+  }) => _operationStream(
+    start: () async => asString(
+      asMap(
+        await _call('location.track', {
+          'intervalSeconds': interval.inSeconds,
+          'distanceMeters': distanceMeters,
+          if (uploadUrl != null)
+            'upload': {'url': uploadUrl.toString(), 'headers': uploadHeaders},
+        }, reason),
+      )?['trackId'],
+    ),
+    stop: (id) => _call('location.stopTracking', {'trackId': id}),
+    event: 'location.update',
+    endEvent: 'location.trackEnd',
+    idKey: 'trackId',
+    convert: LocationFix.fromJson,
+  );
 }
 
 /// Camera or microphone for the page's own web APIs (getUserMedia).
@@ -618,4 +653,46 @@ class GesturesApi {
       orElse: () => PhoneGesture.shake,
     ),
   );
+}
+
+/// Phone calls (feature `phone.call`, SetLiteWeb 1.6.7+, Android).
+class PhoneApi {
+  const PhoneApi._();
+
+  /// SetLiteWeb asks "Call [number]?" first; then calls (or opens the
+  /// dialer if the phone permission is refused). `called` or `dialer`;
+  /// throws `cancelled` if the user says no.
+  Future<String> call(String number) async =>
+      asString(asMap(await _call('phone.call', {'number': number}))?['result']);
+}
+
+/// One-time codes by SMS (feature `sms.otp`, SetLiteWeb 1.6.7+, Android):
+/// Google asks the user to allow reading the next SMS; no SMS permission.
+class SmsApi {
+  const SmsApi._();
+
+  /// Waits (up to 5 minutes) for the next SMS, from [sender] if given.
+  Future<OtpSms> otp({String? sender}) async => OtpSms.fromJson(
+    asMap(await _call('sms.otp', {'sender': ?sender})) ?? const {},
+  );
+}
+
+/// The app's own screen (feature `screen.capture`, SetLiteWeb 1.6.7+).
+class ScreenApi {
+  const ScreenApi._();
+
+  Future<Screenshot> capture() async =>
+      Screenshot.fromJson(asMap(await _call('screen.capture')) ?? const {});
+}
+
+/// Picture-in-picture (feature `pip`, SetLiteWeb 1.6.7+, Android 8+).
+class PipApi {
+  const PipApi._();
+
+  /// Shrinks SetLiteWeb (showing your app) into a small window now.
+  Future<bool> enter() async =>
+      asMap(await _call('pip.enter'))?['entered'] == true;
+
+  /// Shrink automatically when the user leaves (off when your app closes).
+  Future<void> auto(bool on) => _call('pip.auto', {'on': on});
 }

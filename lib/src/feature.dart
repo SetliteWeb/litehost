@@ -2,6 +2,7 @@
 /// in `litestore.yaml` and by the host.
 enum Feature {
   location('location', asksUser: true),
+  locationBackground('location.background', asksUser: true),
   camera('camera', asksUser: true),
   microphone('microphone', asksUser: true),
   bluetooth('bluetooth', asksUser: true),
@@ -12,6 +13,10 @@ enum Feature {
   nfc('nfc'),
   sensors('sensors'),
   gestures('gestures'),
+  phoneCall('phone.call'),
+  smsOtp('sms.otp'),
+  screenCapture('screen.capture'),
+  pip('pip'),
   clipboardRead('clipboard.read', asksUser: true),
   profileName('profile.name', asksUser: true),
   profilePhone('profile.phone', asksUser: true),
@@ -51,6 +56,13 @@ enum Feature {
 const Map<String, Feature?> bridgeMethods = {
   'host.capabilities': null,
   'location.get': Feature.location,
+  'location.track': Feature.locationBackground,
+  'location.stopTracking': Feature.locationBackground,
+  'phone.call': Feature.phoneCall,
+  'sms.otp': Feature.smsOtp,
+  'screen.capture': Feature.screenCapture,
+  'pip.enter': Feature.pip,
+  'pip.auto': Feature.pip,
   'camera.request': Feature.camera,
   'microphone.request': Feature.microphone,
   'bluetooth.scan': Feature.bluetooth,

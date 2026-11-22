@@ -229,6 +229,45 @@ class MockHost implements HostTransport {
         'band': '5 GHz',
       };
     });
+    handle('location.track', (p) {
+      final id = 'track-${_nextId++}';
+      var n = 0;
+      _running[id] = Timer.periodic(const Duration(milliseconds: 40), (_) {
+        n++;
+        emit('location.update', {
+          'trackId': id,
+          'latitude': -1.2864 + n * 0.0001,
+          'longitude': 36.8172,
+          'accuracy': 8,
+          'speed': 9.5,
+          'heading': 12,
+          'at': DateTime.now().toUtc().toIso8601String(),
+        });
+      });
+      return {'trackId': id};
+    });
+    handle('location.stopTracking', (p) {
+      _running.remove(asString(p['trackId']))?.cancel();
+      return null;
+    });
+    handle('phone.call', (p) => {'result': 'called'});
+    handle(
+      'sms.otp',
+      (_) => {'sms': 'Your SetLiteWeb code is 482913', 'code': '482913'},
+    );
+    handle(
+      'screen.capture',
+      (_) => {
+        'mime': 'image/png',
+        // a 1×1 transparent PNG
+        'data':
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+        'width': 1,
+        'height': 1,
+      },
+    );
+    handle('pip.enter', (_) => {'entered': true});
+    handle('pip.auto', (p) => {'on': p['on'] != false});
     handle('wifi.enable', (_) => {'on': true});
     handle('bluetooth.enable', (_) => {'on': true});
     handle('torch.set', (p) {

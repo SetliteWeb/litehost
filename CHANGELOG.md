@@ -1,3 +1,19 @@
+## 1.3.0
+
+For SetLiteWeb 1.6.7+ (Android):
+
+- `LiteHost.location.track()` (feature `location.background`, asks): fixes
+  keep coming in the background in a foreground service with a
+  notification; each also goes to your https server (`uploadUrl`, with
+  Authorization/X- headers), queued while offline. Cancel to stop.
+- `LiteHost.phone.call()` (feature `phone.call`): SetLiteWeb confirms each
+  call, then calls or opens the dialer.
+- `LiteHost.sms.otp()` (feature `sms.otp`): the next code SMS, after
+  Google's consent prompt; no SMS permission.
+- `LiteHost.screen.capture()` (feature `screen.capture`): your app's
+  screen as PNG.
+- `LiteHost.pip.enter()` / `auto()` (feature `pip`): picture-in-picture.
+
 ## 1.2.0
 
 For SetLiteWeb 1.6.6+ (Android):

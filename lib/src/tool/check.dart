@@ -42,12 +42,17 @@ const _byApi = {
   'nfc': Feature.nfc,
   'sensors': Feature.sensors,
   'gestures': Feature.gestures,
+  'phone': Feature.phoneCall,
+  'sms': Feature.smsOtp,
+  'screen': Feature.screenCapture,
+  'pip': Feature.pip,
 };
 
 const _bySubApi = {
   'wifi.get': Feature.wifi,
   'wifi.signal': Feature.wifiSignal,
   'wifi.enable': Feature.wifiEnable,
+  'location.track': Feature.locationBackground,
   'clipboard.read': Feature.clipboardRead,
   'clipboard.write': Feature.clipboardWrite,
   'auth.token': Feature.authToken,
