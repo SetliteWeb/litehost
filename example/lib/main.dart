@@ -79,6 +79,7 @@ class _LabScreenState extends State<LabScreen> {
   final _log = <String>[];
   final _subs = <StreamSubscription<Object?>>[];
   Uint8List? _photo;
+  Uint8List? _shot;
   final _ble = <BleDevice>[];
   bool _screenOn = false;
   String? _lastNotification;
@@ -320,6 +321,47 @@ class _LabScreenState extends State<LabScreen> {
         }),
       ]),
     ]),
+    ('Background, calls and screen', [
+      Test('track', 'Background location', 'location.background', Icons.share_location_rounded, 'Shares your location for 20 s, even after you leave the app (a notification shows). Leave and come back to see the fixes kept coming.', [
+        ('Track 20 s', () async {
+          final fixes = <LocationFix>[];
+          final sub = LiteHost.location.track(interval: const Duration(seconds: 5), distanceMeters: 0, reason: 'Feature Lab is testing background location.').listen(fixes.add);
+          await Future<void>.delayed(const Duration(seconds: 20));
+          await sub.cancel();
+          if (fixes.isEmpty) return 'no fixes in 20 s';
+          final l = fixes.last;
+          return '${fixes.length} fixes · last ${l.latitude.toStringAsFixed(5)}, ${l.longitude.toStringAsFixed(5)} ±${l.accuracyMeters.round()} m'
+              '${l.speed == null ? '' : ' · ${(l.speed! * 3.6).toStringAsFixed(0)} km/h'}';
+        }),
+      ], asks: true),
+      Test('call', 'Make a call', 'phone.call', Icons.call_outlined, 'SetLiteWeb asks "Call …?" first, then calls (or opens the dialer). Tests with *144# (balance).', [
+        ('Call *144#', () async => 'result: ${await LiteHost.phone.call('*144#')}'),
+      ]),
+      Test('otp', 'Read a code SMS', 'sms.otp', Icons.sms_outlined, 'Waits up to 5 minutes for the next SMS; Google asks you to allow it. Send yourself a text with a 6-digit code.', [
+        ('Wait for SMS', () async {
+          final o = await LiteHost.sms.otp();
+          return 'code ${o.code ?? '(none found)'}\n${o.sms}';
+        }),
+      ]),
+      Test('capture', 'Screenshot', 'screen.capture', Icons.screenshot_outlined, 'Captures this app\'s screen.', [
+        ('Capture', () async {
+          final s = await LiteHost.screen.capture();
+          setState(() => _shot = s.png);
+          return '${s.width}×${s.height} PNG, ${(s.png.length / 1024).toStringAsFixed(0)} KB';
+        }),
+      ]),
+      Test('pip', 'Picture-in-picture', 'pip', Icons.picture_in_picture_alt_outlined, 'Shrinks SetLiteWeb to a small window showing this app. "Auto on" does it when you press Home.', [
+        ('Now', () async => (await LiteHost.pip.enter()) ? 'in picture-in-picture' : 'not available on this phone'),
+        ('Auto on', () async {
+          await LiteHost.pip.auto(true);
+          return 'press Home to see it';
+        }),
+        ('Auto off', () async {
+          await LiteHost.pip.auto(false);
+          return 'auto off';
+        }),
+      ]),
+    ]),
     ('Notifications', [
       Test('notifications', 'Notifications', 'notifications', Icons.notifications_none_rounded, 'Asks once. Tapping one opens this app at /lab (see app.link in the log).', [
         ('Show now', () async {
@@ -527,6 +569,10 @@ class _LabScreenState extends State<LabScreen> {
         if (tst.key == 'image' && _photo != null) ...[
           const SizedBox(height: 8),
           ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.memory(_photo!, height: 140, fit: BoxFit.cover)),
+        ],
+        if (tst.key == 'capture' && _shot != null) ...[
+          const SizedBox(height: 8),
+          ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.memory(_shot!, height: 220, fit: BoxFit.contain)),
         ],
         if (tst.key == 'bluetooth' && _ble.isNotEmpty) ...[
           const SizedBox(height: 8),

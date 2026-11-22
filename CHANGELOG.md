@@ -1,3 +1,7 @@
+## 1.3.1
+
+- Example (Feature Lab) covers every 1.3.0 feature. No API changes.
+
 ## 1.3.0
 
 For SetLiteWeb 1.6.7+ (Android):
