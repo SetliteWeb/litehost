@@ -34,7 +34,7 @@ void main() {
     test('reports problems', () {
       final m = LiteStoreManifest.parse(
         'id: "bad id"\nname: ""\nversion: one\n'
-        'requires: [nfc]\noptional: [nfc]',
+        'requires: [teleport]\noptional: [teleport]',
       );
       expect(
         m.errors().join('\n'),
@@ -86,6 +86,31 @@ const s = await LiteHost.wifi.signal();
     );
     expect(r.ok, isTrue);
     expect(r.unused, isEmpty);
+  });
+
+  test('check knows the 1.2 features', () {
+    final lib = Directory('${tmp.path}/lib2')..createSync();
+    File('${lib.path}/main.dart').writeAsStringSync('''
+LiteHost.torch.set(true);
+LiteHost.nfc.read();
+LiteHost.sensors.watch(SensorType.light);
+LiteHost.gestures.watch();
+LiteHost.wifi.enable();
+LiteHost.bluetooth.enable();
+LiteHost.device.battery();
+''');
+    expect(
+      {for (final u in scanUses(lib)) u.feature.id},
+      {
+        'torch',
+        'nfc',
+        'sensors',
+        'gestures',
+        'wifi.enable',
+        'bluetooth',
+        'device.info',
+      },
+    );
   });
 
   test('package leaves out engine files a WebView never loads', () {

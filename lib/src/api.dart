@@ -68,6 +68,10 @@ abstract final class LiteHost {
   static const notifications = NotificationsApi._();
   static const biometric = BiometricApi._();
   static const contacts = ContactsApi._();
+  static const torch = TorchApi._();
+  static const nfc = NfcApi._();
+  static const sensors = SensorsApi._();
+  static const gestures = GesturesApi._();
 
   /// Opens the phone's share sheet.
   static Future<void> share(String text, {String? subject}) =>
@@ -239,6 +243,11 @@ class BluetoothApi {
   );
 
   /// Connects to a device your scan found.
+  /// Asks the phone to switch Bluetooth on (Android shows its own dialog;
+  /// SetLiteWeb 1.6.6+). Whether it's on afterwards.
+  Future<bool> enable({String? reason}) async =>
+      asMap(await _call('bluetooth.enable', const {}, reason))?['on'] == true;
+
   Future<void> connect(String deviceId) =>
       _call('bluetooth.connect', {'deviceId': deviceId});
 
@@ -315,6 +324,12 @@ class WifiApi {
   /// meter; phones refresh the reading every few seconds.
   Future<WifiSignal> signal() async =>
       WifiSignal.fromJson(asMap(await _call('wifi.signal')) ?? const {});
+
+  /// Asks for Wi-Fi to be switched on (feature `wifi.enable`, Android,
+  /// SetLiteWeb 1.6.6+): Android 10+ shows its Wi-Fi panel for the user to
+  /// turn it on. Whether it's on afterwards.
+  Future<bool> enable() async =>
+      asMap(await _call('wifi.enable'))?['on'] == true;
 }
 
 class ClipboardApi {
@@ -419,6 +434,10 @@ class StorageApi {
 class DeviceApi {
   const DeviceApi._();
 
+  /// Battery level, charging and temperature (SetLiteWeb 1.6.6+, Android).
+  Future<Battery> battery() async =>
+      Battery.fromJson(asMap(await _call('device.battery')) ?? const {});
+
   Future<DeviceInfo> info() async =>
       DeviceInfo.fromJson(asMap(await _call('device.info')) ?? const {});
 }
@@ -519,4 +538,84 @@ class ContactsApi {
     final m = asMap(await _call('contacts.pick'));
     return m == null ? null : PickedContact.fromJson(m);
   }
+}
+
+/// The phone's torch (feature `torch`, SetLiteWeb 1.6.6+, Android). It goes
+/// off by itself when your app leaves the screen.
+class TorchApi {
+  const TorchApi._();
+
+  /// Turns it on or off; whether it's on now.
+  Future<bool> set(bool on) async =>
+      asMap(await _call('torch.set', {'on': on}))?['on'] == true;
+
+  Future<bool> isOn() async => asMap(await _call('torch.get'))?['on'] == true;
+}
+
+/// NFC tags (feature `nfc`, SetLiteWeb 1.6.6+, Android).
+class NfcApi {
+  const NfcApi._();
+
+  /// Shows SetLiteWeb's "hold a tag near your phone" sheet and reads the
+  /// first tag. Throws `cancelled` if the user backs out, `disabled` if NFC
+  /// is off.
+  Future<NfcTagInfo> read({String? prompt}) async => NfcTagInfo.fromJson(
+    asMap(await _call('nfc.read', {'prompt': ?prompt})) ?? const {},
+  );
+}
+
+/// The phone's sensors (feature `sensors`, SetLiteWeb 1.6.6+, Android).
+class SensorsApi {
+  const SensorsApi._();
+
+  /// The sensors this phone has.
+  Future<List<SensorInfo>> list() async => [
+    for (final s in asList(await _call('sensors.list')))
+      SensorInfo.fromJson(asMap(s) ?? const {}),
+  ];
+
+  /// Readings of [type], at most [hz] a second (1-50). Up to 4 at once;
+  /// cancel the subscription to stop.
+  Stream<SensorReading> watch(SensorType type, {int hz = 10}) =>
+      _operationStream(
+        start: () async => asString(
+          asMap(
+            await _call('sensors.watch', {
+              'type': type.name,
+              'hz': hz.clamp(1, 50),
+            }),
+          )?['watchId'],
+        ),
+        stop: (id) => _call('sensors.stop', {'watchId': id}),
+        event: 'sensors.reading',
+        endEvent: 'sensors.end',
+        idKey: 'watchId',
+        convert: SensorReading.fromJson,
+      );
+}
+
+/// Phone gestures (feature `gestures`, SetLiteWeb 1.6.6+, Android): shake,
+/// face down/up, tilt left/right, a hand waved over the phone.
+class GesturesApi {
+  const GesturesApi._();
+
+  Stream<PhoneGesture> watch({Set<PhoneGesture>? kinds}) => _operationStream(
+    start: () async => asString(
+      asMap(
+        await _call('gestures.watch', {
+          'kinds': [
+            for (final k in kinds ?? PhoneGesture.values.toSet()) k.name,
+          ],
+        }),
+      )?['watchId'],
+    ),
+    stop: (id) => _call('gestures.stop', {'watchId': id}),
+    event: 'gesture',
+    endEvent: 'gestures.end',
+    idKey: 'watchId',
+    convert: (m) => PhoneGesture.values.firstWhere(
+      (g) => g.name == m['kind'],
+      orElse: () => PhoneGesture.shake,
+    ),
+  );
 }

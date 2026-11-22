@@ -1,3 +1,23 @@
+## 1.2.0
+
+For SetLiteWeb 1.6.6+ (Android):
+
+- `LiteHost.bluetooth.enable()`: Android's "turn on Bluetooth?" dialog.
+- `LiteHost.wifi.enable()` (feature `wifi.enable`): the Wi-Fi panel for
+  the user to switch Wi-Fi on (Android 10+), directly on older phones.
+- `LiteHost.torch.set()` / `isOn()` (feature `torch`): off by itself when
+  the app leaves the screen.
+- `LiteHost.nfc.read()` (feature `nfc`): the host's "hold a tag" sheet; tag
+  id, techs and NDEF records (text, links, contact cards). No commands go
+  to cards, so bank cards give only a random id.
+- `LiteHost.sensors.list()` / `watch()` (feature `sensors`): motion,
+  compass, light, pressure, proximity, temperature, humidity, steps; up
+  to 50 Hz, 4 at once.
+- `LiteHost.gestures.watch()` (feature `gestures`): shake, face down/up,
+  tilt left/right, wave.
+- `LiteHost.device.battery()`: level, charging and battery temperature.
+- MockHost answers all of them; `litehost:check` knows them.
+
 ## 1.1.2
 
 - The example is now Feature Lab: one card per feature (every litehost API,

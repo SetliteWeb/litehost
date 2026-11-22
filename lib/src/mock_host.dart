@@ -63,6 +63,9 @@ class MockHost implements HostTransport {
   String? profilePhone;
   String? profileEmail;
 
+  /// The pretend torch.
+  bool torchOn = false;
+
   /// Fixes `wifi.signal`'s reading (dBm); null: it drifts like a walk.
   int? mockRssi;
 
@@ -225,6 +228,93 @@ class MockHost implements HostTransport {
         'frequencyMhz': 5180,
         'band': '5 GHz',
       };
+    });
+    handle('wifi.enable', (_) => {'on': true});
+    handle('bluetooth.enable', (_) => {'on': true});
+    handle('torch.set', (p) {
+      torchOn = p['on'] == true;
+      return {'on': torchOn};
+    });
+    handle('torch.get', (_) => {'on': torchOn});
+    handle(
+      'nfc.read',
+      (_) => {
+        'id': '04:A2:2B:1A:5C:80',
+        'techs': ['NfcA', 'MifareUltralight', 'Ndef'],
+        'ndef': [
+          {
+            'kind': 'uri',
+            'tnf': 'wellKnown',
+            'type': 'U',
+            'uri': 'https://setliteweb.com',
+            'data': '',
+          },
+          {
+            'kind': 'text',
+            'tnf': 'wellKnown',
+            'type': 'T',
+            'lang': 'en',
+            'text': 'Mock tag',
+            'data': '',
+          },
+        ],
+        'writable': true,
+        'maxSize': 492,
+      },
+    );
+    handle(
+      'device.battery',
+      (_) => {'level': 76, 'charging': false, 'temperatureC': 31.5},
+    );
+    handle(
+      'sensors.list',
+      (_) => [
+        for (final t in [
+          'accelerometer',
+          'gyroscope',
+          'magnetometer',
+          'light',
+          'proximity',
+        ])
+          {'type': t, 'name': 'Mock $t', 'vendor': 'Mock'},
+      ],
+    );
+    handle('sensors.watch', (p) {
+      final id = 'sensor-${_nextId++}';
+      final type = asString(p['type']);
+      var n = 0;
+      _running[id] = Timer.periodic(const Duration(milliseconds: 50), (_) {
+        n++;
+        final values = switch (type) {
+          'light' => [120.0 + n % 10],
+          'proximity' => [5.0],
+          'temperature' => [24.5],
+          _ => [0.1 * (n % 7), 0.2, 9.81],
+        };
+        emit('sensors.reading', {
+          'watchId': id,
+          'type': type,
+          'values': values,
+          'accuracy': 3,
+        });
+      });
+      return {'watchId': id};
+    });
+    handle('sensors.stop', (p) {
+      _running.remove(asString(p['watchId']))?.cancel();
+      return null;
+    });
+    handle('gestures.watch', (p) {
+      final id = 'gestures-${_nextId++}';
+      _running[id] = Timer(
+        const Duration(milliseconds: 30),
+        () => emit('gesture', {'watchId': id, 'kind': 'shake'}),
+      );
+      return {'watchId': id};
+    });
+    handle('gestures.stop', (p) {
+      _running.remove(asString(p['watchId']))?.cancel();
+      return null;
     });
     handle('clipboard.read', (_) => 'copied text');
     handle('clipboard.write', (_) => null);

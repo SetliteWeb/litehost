@@ -85,6 +85,13 @@ The output in `build/litestore/` is what you upload to LiteStore.
 | `LiteHost.bluetooth.scan()/connect()/read()/write()/notifications()` | `bluetooth` | yes |
 | `LiteHost.wifi.get()` | `wifi` | yes |
 | `LiteHost.wifi.signal()` | `wifi.signal` | no (signal strength only; Android, SetLiteWeb 1.6.4+) |
+| `LiteHost.wifi.enable()` | `wifi.enable` | no (the user turns it on in Android's Wi-Fi panel; 1.6.6+) |
+| `LiteHost.bluetooth.enable()` | `bluetooth` | yes (with Bluetooth; Android's own dialog; 1.6.6+) |
+| `LiteHost.torch.set()` / `isOn()` | `torch` | no (off when the app leaves; 1.6.6+) |
+| `LiteHost.nfc.read()` | `nfc` | no (host screen; never bank card data; 1.6.6+) |
+| `LiteHost.sensors.list()` / `watch()` | `sensors` | no (up to 50 Hz, 4 at once; 1.6.6+) |
+| `LiteHost.gestures.watch()` | `gestures` | no (shake, flip, tilt, wave; 1.6.6+) |
+| `LiteHost.device.battery()` | `device.info` | no (1.6.6+) |
 | `LiteHost.clipboard.read()` / `write()` | `clipboard.read` / `clipboard.write` | read only |
 | `LiteHost.profile.get({...})` | `profile.name` / `.phone` / `.email` | yes, per field |
 | `LiteHost.auth.token()` | `auth.token` | yes |

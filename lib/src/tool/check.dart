@@ -38,11 +38,16 @@ const _byApi = {
   'notifications': Feature.notifications,
   'biometric': Feature.biometric,
   'contacts': Feature.contactsPick,
+  'torch': Feature.torch,
+  'nfc': Feature.nfc,
+  'sensors': Feature.sensors,
+  'gestures': Feature.gestures,
 };
 
 const _bySubApi = {
   'wifi.get': Feature.wifi,
   'wifi.signal': Feature.wifiSignal,
+  'wifi.enable': Feature.wifiEnable,
   'clipboard.read': Feature.clipboardRead,
   'clipboard.write': Feature.clipboardWrite,
   'auth.token': Feature.authToken,

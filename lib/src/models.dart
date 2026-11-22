@@ -355,3 +355,153 @@ class BleCharacteristic {
   bool get canNotify =>
       properties.contains('notify') || properties.contains('indicate');
 }
+
+/// A phone sensor `LiteHost.sensors` can read (Android).
+enum SensorType {
+  accelerometer,
+  gyroscope,
+  magnetometer,
+  gravity,
+  linearAcceleration,
+  rotation,
+  light,
+  pressure,
+  proximity,
+
+  /// Air temperature (°C). Few phones have it; every phone reports its
+  /// battery temperature in [Battery.temperatureC].
+  temperature,
+  humidity,
+  stepCounter;
+
+  static SensorType? fromName(String n) {
+    for (final t in values) {
+      if (t.name == n) return t;
+    }
+    return null;
+  }
+}
+
+class SensorInfo {
+  const SensorInfo({
+    required this.type,
+    required this.name,
+    required this.vendor,
+    this.maxRange,
+    this.resolution,
+  });
+
+  factory SensorInfo.fromJson(Map<String, Object?> j) => SensorInfo(
+    type: SensorType.fromName(asString(j['type'])) ?? SensorType.accelerometer,
+    name: asString(j['name']),
+    vendor: asString(j['vendor']),
+    maxRange: (j['maxRange'] as num?)?.toDouble(),
+    resolution: (j['resolution'] as num?)?.toDouble(),
+  );
+
+  final SensorType type;
+  final String name;
+  final String vendor;
+  final double? maxRange;
+  final double? resolution;
+}
+
+/// One reading. [values] as Android gives them: x, y, z in m/s² or rad/s
+/// for motion; one value for light (lux), pressure (hPa), proximity (cm),
+/// temperature (°C), humidity (%), steps since boot.
+class SensorReading {
+  const SensorReading({required this.values, this.accuracy = 0});
+
+  factory SensorReading.fromJson(Map<String, Object?> j) => SensorReading(
+    values: [for (final v in asList(j['values'])) (v as num).toDouble()],
+    accuracy: (j['accuracy'] as num?)?.toInt() ?? 0,
+  );
+
+  final List<double> values;
+
+  /// 0 (unreliable) to 3 (high).
+  final int accuracy;
+}
+
+class Battery {
+  const Battery({this.level, required this.charging, this.temperatureC});
+
+  factory Battery.fromJson(Map<String, Object?> j) => Battery(
+    level: (j['level'] as num?)?.toInt(),
+    charging: j['charging'] == true,
+    temperatureC: (j['temperatureC'] as num?)?.toDouble(),
+  );
+
+  /// 0-100.
+  final int? level;
+  final bool charging;
+
+  /// The battery's temperature: every phone has this one.
+  final double? temperatureC;
+}
+
+enum PhoneGesture { shake, faceDown, faceUp, tiltLeft, tiltRight, wave }
+
+/// One NDEF record from an NFC tag.
+class NfcRecord {
+  const NfcRecord({
+    required this.kind,
+    required this.type,
+    required this.data,
+    this.text,
+    this.uri,
+    this.lang,
+    this.mime,
+  });
+
+  factory NfcRecord.fromJson(Map<String, Object?> j) => NfcRecord(
+    kind: asString(j['kind'], 'other'),
+    type: asString(j['type']),
+    data: base64Decode(asString(j['data'])),
+    text: asNullableString(j['text']),
+    uri: asNullableString(j['uri']),
+    lang: asNullableString(j['lang']),
+    mime: asNullableString(j['mime']),
+  );
+
+  /// `text`, `uri`, `mime`, `external` or `other`.
+  final String kind;
+  final String type;
+  final Uint8List data;
+  final String? text;
+  final String? uri;
+  final String? lang;
+  final String? mime;
+}
+
+/// A tag or card held to the phone. Only what it offers as NDEF: SetLiteWeb
+/// sends no commands to cards, so a bank card gives just a random [id].
+class NfcTagInfo {
+  const NfcTagInfo({
+    this.id,
+    required this.techs,
+    required this.records,
+    this.writable,
+    this.maxSize,
+  });
+
+  factory NfcTagInfo.fromJson(Map<String, Object?> j) => NfcTagInfo(
+    id: asNullableString(j['id']),
+    techs: [for (final t in asList(j['techs'])) '$t'],
+    records: [
+      for (final r in asList(j['ndef']))
+        NfcRecord.fromJson(asMap(r) ?? const {}),
+    ],
+    writable: j['writable'] as bool?,
+    maxSize: (j['maxSize'] as num?)?.toInt(),
+  );
+
+  /// "04:A2:2B:1A:…".
+  final String? id;
+
+  /// "NfcA", "IsoDep", "Ndef", …
+  final List<String> techs;
+  final List<NfcRecord> records;
+  final bool? writable;
+  final int? maxSize;
+}

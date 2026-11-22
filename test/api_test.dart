@@ -67,6 +67,47 @@ void main() {
     },
   );
 
+  test('switching on, torch, NFC and battery', () async {
+    expect(await LiteHost.wifi.enable(), isTrue);
+    expect(await LiteHost.bluetooth.enable(reason: 'test'), isTrue);
+    expect(await LiteHost.torch.set(true), isTrue);
+    expect(await LiteHost.torch.isOn(), isTrue);
+    expect(await LiteHost.torch.set(false), isFalse);
+    final tag = await LiteHost.nfc.read(prompt: 'Tap your card');
+    expect(tag.id, startsWith('04:A2'));
+    expect(tag.techs, contains('Ndef'));
+    expect(tag.records.first.uri, 'https://setliteweb.com');
+    expect(tag.records.last.text, 'Mock tag');
+    final b = await LiteHost.device.battery();
+    expect(b.level, 76);
+    expect(b.temperatureC, 31.5);
+    expect(Feature.torch.asksUser, isFalse);
+    expect(Feature.nfc.asksUser, isFalse);
+  });
+
+  test('sensors and gestures stream until cancelled', () async {
+    final list = await LiteHost.sensors.list();
+    expect(list.map((s) => s.type), contains(SensorType.light));
+    final readings = await LiteHost.sensors
+        .watch(SensorType.accelerometer, hz: 20)
+        .take(3)
+        .toList();
+    expect(readings, hasLength(3));
+    expect(readings.first.values, hasLength(3));
+    expect(readings.first.values[2], closeTo(9.81, .01));
+    final light = await LiteHost.sensors.watch(SensorType.light).first;
+    expect(light.values.single, greaterThan(100));
+    expect(
+      await LiteHost.gestures.watch(kinds: {PhoneGesture.shake}).first,
+      PhoneGesture.shake,
+    );
+    // Stopping really stops: the mock's timers are gone.
+    expect(
+      mock.calls.map((c) => c.$1),
+      containsAll(['sensors.stop', 'gestures.stop']),
+    );
+  });
+
   test('declared, available and denied features are enforced', () async {
     LiteHost.useMock(mock = MockHost(declared: {Feature.storage}));
     await expectLater(
