@@ -1,10 +1,9 @@
 id: com.setliteweb.litehost.example
 name: Feature Lab
-version: 1.0.0
+version: 1.1.0
 summary: Tests every SetLiteWeb mini app feature, one card each.
 developer: SetLiteWeb
 category: developer
-
 requires: []
 optional:
   - location
@@ -13,6 +12,11 @@ optional:
   - bluetooth
   - wifi
   - wifi.signal
+  - wifi.enable
+  - torch
+  - nfc
+  - sensors
+  - gestures
   - clipboard.read
   - clipboard.write
   - profile.name

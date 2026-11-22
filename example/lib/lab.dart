@@ -49,7 +49,7 @@ String explain(String? code) => switch (code) {
     };
 
 /// The tests that never show a prompt or open another screen.
-const quietTests = {'capabilities', 'device', 'wifi.signal', 'clipboard.write', 'storage', 'links', 'haptics', 'keepOn'};
+const quietTests = {'capabilities', 'device', 'wifi.signal', 'clipboard.write', 'storage', 'links', 'haptics', 'keepOn', 'sensors', 'battery'};
 
 /// Storage round trip: set, get, keys, remove, clear.
 Future<String> storageRoundTrip() async {

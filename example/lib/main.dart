@@ -265,6 +265,61 @@ class _LabScreenState extends State<LabScreen> {
         ('Round trip', storageRoundTrip),
       ]),
     ]),
+    ('Switch on', [
+      Test('bluetooth.enable', 'Turn on Bluetooth', 'bluetooth', Icons.bluetooth_rounded, "Android's own \"turn on Bluetooth?\" dialog.", [
+        ('Turn on', () async => (await LiteHost.bluetooth.enable(reason: 'Feature Lab is testing Bluetooth.')) ? 'Bluetooth is on' : 'still off'),
+      ], asks: true),
+      Test('wifi.enable', 'Turn on Wi-Fi', 'wifi.enable', Icons.wifi_rounded, "Opens Android's Wi-Fi panel: you switch it on, then come back.", [
+        ('Turn on', () async => (await LiteHost.wifi.enable()) ? 'Wi-Fi is on' : 'still off'),
+      ]),
+      Test('torch', 'Torch', 'torch', Icons.flashlight_on_outlined, 'On and off. It goes off by itself when you leave the app.', [
+        ('On', () async => (await LiteHost.torch.set(true)) ? 'torch on' : 'torch off'),
+        ('Off', () async => (await LiteHost.torch.set(false)) ? 'torch on' : 'torch off'),
+        ('Is it on?', () async => (await LiteHost.torch.isOn()) ? 'on' : 'off'),
+      ]),
+    ]),
+    ('NFC', [
+      Test('nfc', 'Read an NFC tag', 'nfc', Icons.nfc_rounded, 'Hold a tag, sticker or transport card to the back of the phone. Bank cards give only a random id.', [
+        ('Read', () async {
+          final tag = await LiteHost.nfc.read(prompt: 'Feature Lab: hold a tag near the phone');
+          final recs = [
+            for (final r in tag.records)
+              '${r.kind}: ${r.text ?? r.uri ?? r.mime ?? '${r.data.length} bytes'}',
+          ];
+          return 'id ${tag.id ?? '–'} · ${tag.techs.join(', ')}'
+              '${tag.writable == null ? '' : ' · ${tag.writable! ? 'writable' : 'read-only'}, ${tag.maxSize} bytes'}'
+              '\n${recs.isEmpty ? 'no NDEF records' : recs.join('\n')}';
+        }),
+      ]),
+    ]),
+    ('Sensors and gestures', [
+      Test('sensors', 'Sensors', 'sensors', Icons.sensors_rounded, 'Lists this phone\'s sensors, or reads one for 2 seconds.', [
+        ('List', () async {
+          final list = await LiteHost.sensors.list();
+          return list.isEmpty ? 'no sensors reported' : list.map((s) => '${s.type.name}: ${s.name}').join('\n');
+        }),
+        for (final type in [SensorType.accelerometer, SensorType.gyroscope, SensorType.magnetometer, SensorType.light, SensorType.proximity, SensorType.pressure, SensorType.temperature, SensorType.humidity, SensorType.stepCounter])
+          (type.name, () => _readSensor(type)),
+      ]),
+      Test('battery', 'Battery and temperature', 'device.info', Icons.battery_std_rounded, 'Level, charging and the battery\'s temperature (every phone has this one).', [
+        ('Read', () async {
+          final b = await LiteHost.device.battery();
+          return '${b.level ?? '?'}% · ${b.charging ? 'charging' : 'not charging'} · battery ${b.temperatureC?.toStringAsFixed(1) ?? '?'} °C';
+        }),
+      ]),
+      Test('gestures', 'Phone gestures', 'gestures', Icons.back_hand_outlined, 'Watches for 15 s: shake, put face down and up, tilt, wave a hand over the top.', [
+        ('Watch 15 s', () async {
+          final seen = <String>[];
+          final sub = LiteHost.gestures.watch().listen((g) {
+            seen.add(g.name);
+            _event('gesture: ${g.name}');
+          });
+          await Future<void>.delayed(const Duration(seconds: 15));
+          await sub.cancel();
+          return seen.isEmpty ? 'none seen in 15 s' : 'seen: ${seen.join(', ')}';
+        }),
+      ]),
+    ]),
     ('Notifications', [
       Test('notifications', 'Notifications', 'notifications', Icons.notifications_none_rounded, 'Asks once. Tapping one opens this app at /lab (see app.link in the log).', [
         ('Show now', () async {
@@ -284,6 +339,27 @@ class _LabScreenState extends State<LabScreen> {
       ], asks: true),
     ]),
   ];
+
+  static const _units = {
+    SensorType.accelerometer: 'm/s²', SensorType.gyroscope: 'rad/s', SensorType.magnetometer: 'µT',
+    SensorType.light: 'lux', SensorType.proximity: 'cm', SensorType.pressure: 'hPa',
+    SensorType.temperature: '°C', SensorType.humidity: '%', SensorType.stepCounter: 'steps',
+  };
+
+  /// Two seconds of readings: how many, and the last one with units.
+  Future<String> _readSensor(SensorType type) async {
+    final readings = <SensorReading>[];
+    final sub = LiteHost.sensors.watch(type, hz: 20).listen(readings.add);
+    final done = Completer<void>();
+    sub.onError((Object e) {
+      if (!done.isCompleted) done.completeError(e);
+    });
+    await Future.any([done.future, Future<void>.delayed(const Duration(seconds: 2))]);
+    await sub.cancel();
+    if (readings.isEmpty) return 'no readings in 2 s';
+    final v = readings.last.values.map((x) => x.toStringAsFixed(2)).join(', ');
+    return '${readings.length} readings · last: $v ${_units[type] ?? ''}';
+  }
 
   Future<String> _pick(ImageSource source) async {
     final img = await LiteHost.image.pick(source: source, maxWidth: 800);
