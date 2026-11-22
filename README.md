@@ -46,12 +46,32 @@ requires: [location]        # app is hidden where these are missing
 optional: [scanner, profile.name, storage]
 ```
 
+## Apps written in JavaScript
+
+The host injects the same API as `window.LiteHost` into every page, so a
+plain HTML/JS mini app can call it directly; keep its page in `web/` and
+`litehost:check` reads it too:
+
+```js
+if (window.LiteHost) {
+  const s = await LiteHost.wifi.signal();   // { connected, rssi, linkMbps, band }
+  LiteHost.haptics({ style: 'light' });
+  LiteHost.on('app.pause', saveDraft);
+  LiteHost.ready();                         // hide the splash
+}
+```
+
+```sh
+dart run litehost:build --dir web           # package it with the listing
+```
+
 ## Tools
 
 ```sh
 dart run litehost:check     # code uses only declared features?
 dart run litehost:build     # flutter build web + zip + SHA-256 + listing
 dart run litehost:build --dir dist   # package any already built site
+dart run litehost:build --target lib/main_prod.dart   # another entry point
 ```
 
 The output in `build/litestore/` is what you upload to LiteStore.
@@ -64,6 +84,7 @@ The output in `build/litestore/` is what you upload to LiteStore.
 | `LiteHost.camera.request()` / `microphone.request()` | `camera` / `microphone` | yes |
 | `LiteHost.bluetooth.scan()/connect()/read()/write()/notifications()` | `bluetooth` | yes |
 | `LiteHost.wifi.get()` | `wifi` | yes |
+| `LiteHost.wifi.signal()` | `wifi.signal` | no (signal strength only; Android, SetLiteWeb 1.6.4+) |
 | `LiteHost.clipboard.read()` / `write()` | `clipboard.read` / `clipboard.write` | read only |
 | `LiteHost.profile.get({...})` | `profile.name` / `.phone` / `.email` | yes, per field |
 | `LiteHost.auth.token()` | `auth.token` | yes |

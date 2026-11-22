@@ -42,6 +42,31 @@ void main() {
     );
   });
 
+  test(
+    'wifi.signal: typed reading, no consent, declared like any feature',
+    () async {
+      mock.mockRssi = -58;
+      final s = await LiteHost.wifi.signal();
+      expect(s.connected, isTrue);
+      expect(s.rssi, -58);
+      expect(s.percent, 74);
+      expect(s.quality, WifiQuality.good);
+      expect(s.band, '5 GHz');
+      expect(Feature.wifiSignal.asksUser, isFalse);
+      expect(
+        WifiSignal.fromJson({'connected': true, 'rssi': -127}).rssi,
+        isNull,
+      );
+      expect(WifiSignal.fromJson({'connected': false}).percent, isNull);
+      expect(WifiQuality.fromRssi(-85).label, 'Very weak');
+      LiteHost.useMock(mock = MockHost(declared: {Feature.wifi}));
+      await expectLater(
+        LiteHost.wifi.signal(),
+        throwsHost(LiteHostError.undeclared),
+      );
+    },
+  );
+
   test('declared, available and denied features are enforced', () async {
     LiteHost.useMock(mock = MockHost(declared: {Feature.storage}));
     await expectLater(

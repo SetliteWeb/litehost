@@ -1,3 +1,18 @@
+## 1.1.0
+
+- `LiteHost.wifi.signal()` (feature `wifi.signal`, SetLiteWeb 1.6.4+,
+  Android): signal strength in dBm, Wi-Fi link speed and band, with
+  `percent` and `quality` helpers. No network name, so no consent sheet.
+  `MockHost` drifts it like a walk, or fixes it with `mockRssi`.
+- `litehost:check` also reads JavaScript and HTML in `web/`, for mini apps
+  that call `window.LiteHost` directly, and tells `wifi.get` from
+  `wifi.signal`.
+- `litehost:build`: `--target <file>` for apps whose entry point isn't
+  lib/main.dart; no offline service worker (SetLiteWeb keeps the bundle);
+  leaves out Flutter engine files a WebView never loads (skwasm, other
+  renderers, `.symbols`, version.json), several MB per app. `--no-trim`
+  keeps them; `--wasm` builds keep them too.
+
 ## 1.0.0
 
 - First release, for SetLiteWeb bridge version 1: location, camera,

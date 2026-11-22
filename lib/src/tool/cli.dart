@@ -37,11 +37,16 @@ LiteStoreManifest? loadManifest(Directory root, IOSink log) {
   return errors.isEmpty ? m : null;
 }
 
-/// `dart run litehost:check`. Exit code 1 if code uses undeclared features.
+/// `dart run litehost:check`. Exit code 1 if code (Dart in lib/, JavaScript
+/// in web/) uses undeclared features.
 int runCheck(Directory root, IOSink log) {
   final m = loadManifest(root, log);
   if (m == null) return 1;
-  final result = checkUses(m, scanUses(Directory(p.join(root.path, 'lib'))));
+  // lib/ for Dart apps; web/ for apps written in JavaScript.
+  final result = checkUses(m, [
+    ...scanUses(Directory(p.join(root.path, 'lib'))),
+    ...scanUses(Directory(p.join(root.path, 'web'))),
+  ]);
   for (final u in result.undeclared) {
     log.writeln(
       'error: ${p.relative(u.file, from: root.path)}:${u.line} '
@@ -50,7 +55,7 @@ int runCheck(Directory root, IOSink log) {
     );
   }
   for (final id in result.unused) {
-    log.writeln('note: "$id" is declared but not used in lib/.');
+    log.writeln('note: "$id" is declared but not used in lib/ or web/.');
   }
   if (result.ok) log.writeln('${m.name} ${m.version}: features OK.');
   return result.ok ? 0 : 1;
@@ -76,7 +81,10 @@ Builds a LiteStore bundle: dist/litestore/<id>-<version>.zip and .json.
   --base-href </path/>  Base path the app is served from (default /).
   --bundle-url <url>    Where the zip will be hosted, for the listing.
   --out <folder>        Output folder (default build/litestore).
-  --wasm                Build with WebAssembly (Flutter).
+  --target <file>       Entry point for flutter build (default lib/main.dart).
+  --wasm                Build with WebAssembly (Flutter; keeps every engine
+                        file).
+  --no-trim             Keep all of Flutter's engine files and symbols.
   --cdn                 Load Flutter's engine from Google's CDN instead of
                         bundling it (smaller, but needs internet to open).
   --skip-check          Don't check feature use against litestore.yaml.''');
@@ -100,6 +108,9 @@ Builds a LiteStore bundle: dist/litestore/<id>-<version>.zip and .json.
       opt('base-href') ?? '/',
       if (!args.contains('--cdn')) '--no-web-resources-cdn',
       if (args.contains('--wasm')) '--wasm',
+      // SetLiteWeb stores and serves the bundle itself: no offline worker.
+      '--pwa-strategy=none',
+      if (opt('target') case final t?) ...['--target', t],
     ];
     log.writeln('flutter ${cmd.join(' ')}');
     final proc = await Process.start(
@@ -127,6 +138,8 @@ Builds a LiteStore bundle: dist/litestore/<id>-<version>.zip and .json.
             : (p.isAbsolute(out) ? out : p.join(root.path, out)),
       ),
       bundleUrlBase: opt('bundle-url') ?? '',
+      trimFlutterEngine:
+          !args.contains('--wasm') && !args.contains('--no-trim'),
     );
     log
       ..writeln('Bundle:  ${app.zip.path}')

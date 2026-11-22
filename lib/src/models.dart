@@ -96,6 +96,78 @@ class WifiInfo {
   final String? ip;
 }
 
+/// How good a Wi-Fi signal is, from [WifiSignal.rssi].
+enum WifiQuality {
+  excellent('Excellent'),
+  good('Good'),
+  fair('Fair'),
+  weak('Weak'),
+  veryWeak('Very weak');
+
+  const WifiQuality(this.label);
+
+  /// For people: "Excellent", "Very weak", ...
+  final String label;
+
+  static WifiQuality fromRssi(int dbm) {
+    if (dbm >= -55) return excellent;
+    if (dbm >= -65) return good;
+    if (dbm >= -72) return fair;
+    if (dbm >= -80) return weak;
+    return veryWeak;
+  }
+}
+
+/// How strong the phone's Wi-Fi signal is where it is now. Never the
+/// network's name, so the user isn't asked (Android only; iOS doesn't let
+/// apps read signal strength).
+class WifiSignal {
+  const WifiSignal({
+    required this.connected,
+    this.rssi,
+    this.linkMbps,
+    this.frequencyMhz,
+    this.band,
+  });
+
+  factory WifiSignal.fromJson(Map<String, Object?> j) {
+    int? n(Object? v) => v is num ? v.toInt() : null;
+    final rssi = n(j['rssi']);
+    return WifiSignal(
+      connected: j['connected'] == true,
+      rssi: rssi != null && rssi < 0 && rssi > -127 ? rssi : null,
+      linkMbps: n(j['linkMbps']),
+      frequencyMhz: n(j['frequencyMhz']),
+      band: asNullableString(j['band']),
+    );
+  }
+
+  /// On Wi-Fi at all.
+  final bool connected;
+
+  /// Signal in dBm: about -45 (next to the router) to -90 (barely there).
+  /// Null until the phone has measured it.
+  final int? rssi;
+
+  /// The Wi-Fi link's speed (phone to router, not the internet).
+  final int? linkMbps;
+  final int? frequencyMhz;
+
+  /// "2.4 GHz", "5 GHz" or "6 GHz".
+  final String? band;
+
+  /// 0-100 for a meter: -45 dBm or better is 100, -95 is 0.
+  int? get percent =>
+      rssi == null ? null : ((rssi! + 95) / 50 * 100).round().clamp(0, 100);
+
+  WifiQuality? get quality => rssi == null ? null : WifiQuality.fromRssi(rssi!);
+
+  @override
+  String toString() => connected
+      ? 'WifiSignal($rssi dBm, $band, $linkMbps Mbps)'
+      : 'WifiSignal(not on Wi-Fi)';
+}
+
 enum ProfileField { name, phone, email }
 
 /// Only the fields the user agreed to share. [id] is stable for this user

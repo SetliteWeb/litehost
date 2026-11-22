@@ -24,6 +24,24 @@ class PackagedApp {
   final int sizeBytes;
 }
 
+/// The CanvasKit build SetLiteWeb's WebView loads: Chromium's, plus the
+/// full one as a fallback. `flutter build web` also ships skwasm, the
+/// experimental renderers and debug symbols (several MB) a non-wasm app
+/// never fetches.
+const _keptEngine = {
+  'canvaskit/canvaskit.js',
+  'canvaskit/canvaskit.wasm',
+  'canvaskit/chromium/canvaskit.js',
+  'canvaskit/chromium/canvaskit.wasm',
+};
+
+bool _unusedEngineFile(String rel) {
+  final posix = p.posix.joinAll(p.split(rel));
+  if (posix.endsWith('.symbols')) return true;
+  if (posix == 'version.json') return true;
+  return posix.startsWith('canvaskit/') && !_keptEngine.contains(posix);
+}
+
 /// Zips the built site in [site] (index.html at its root) for LiteStore,
 /// with litestore.json beside it, and writes the store listing next to the
 /// zip. Files are added in a fixed order so the same build gives the same
@@ -33,6 +51,7 @@ PackagedApp packageApp({
   required Directory site,
   required Directory out,
   String bundleUrlBase = '',
+  bool trimFlutterEngine = true,
 }) {
   if (!File(p.join(site.path, 'index.html')).existsSync()) {
     throw StateError('${site.path} has no index.html. Build the app first.');
@@ -44,7 +63,9 @@ PackagedApp packageApp({
           .map((f) => p.relative(f.path, from: site.path))
           .where(
             (rel) =>
-                rel != 'litestore.json' && !p.split(rel).first.startsWith('.'),
+                rel != 'litestore.json' &&
+                !p.split(rel).first.startsWith('.') &&
+                !(trimFlutterEngine && _unusedEngineFile(rel)),
           )
           .toList()
         ..sort();

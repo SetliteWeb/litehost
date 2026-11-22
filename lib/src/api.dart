@@ -309,6 +309,12 @@ class WifiApi {
   Future<WifiInfo> get({String? reason}) async => WifiInfo.fromJson(
     asMap(await _call('wifi.get', const {}, reason)) ?? const {},
   );
+
+  /// How strong the Wi-Fi signal is (feature `wifi.signal`). No network
+  /// name, so no consent sheet. Call it about once a second for a live
+  /// meter; phones refresh the reading every few seconds.
+  Future<WifiSignal> signal() async =>
+      WifiSignal.fromJson(asMap(await _call('wifi.signal')) ?? const {});
 }
 
 class ClipboardApi {

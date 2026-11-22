@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'errors.dart';
 import 'feature.dart';
@@ -61,6 +62,9 @@ class MockHost implements HostTransport {
   String? profileName;
   String? profilePhone;
   String? profileEmail;
+
+  /// Fixes `wifi.signal`'s reading (dBm); null: it drifts like a walk.
+  int? mockRssi;
 
   /// Pretend no one is signed in to SetLiteWeb.
   bool signedOut = false;
@@ -210,6 +214,18 @@ class MockHost implements HostTransport {
       'wifi.get',
       (_) => {'ssid': 'MockWiFi', 'bssid': null, 'ip': '192.168.1.20'},
     );
+    handle('wifi.signal', (_) {
+      // A slow walk towards the router and back.
+      final t = DateTime.now().millisecondsSinceEpoch / 1000;
+      final rssi = mockRssi ?? (-66 + 14 * math.sin(t / 6)).round();
+      return {
+        'connected': true,
+        'rssi': rssi,
+        'linkMbps': 72,
+        'frequencyMhz': 5180,
+        'band': '5 GHz',
+      };
+    });
     handle('clipboard.read', (_) => 'copied text');
     handle('clipboard.write', (_) => null);
     handle('profile.get', (p) {

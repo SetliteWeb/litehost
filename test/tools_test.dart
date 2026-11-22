@@ -68,6 +68,67 @@ final e = ProfileField.values;
     expect(r.ok, isFalse);
   });
 
+  test('check reads JavaScript too, and tells wifi.get from wifi.signal', () {
+    final web = Directory('${tmp.path}/web')..createSync();
+    File('${web.path}/index.html').writeAsStringSync('''
+<script>
+if (window.LiteHost) LiteHost.haptics({ style: 'light' });
+const s = await LiteHost.wifi.signal();
+// LiteHost.scanner.scan()  (comment: ignored)
+</script>''');
+    final uses = scanUses(web);
+    expect({for (final u in uses) u.feature.id}, {'haptics', 'wifi.signal'});
+    final r = checkUses(
+      LiteStoreManifest.parse(
+        'id: a.b\nname: A\nversion: 1.0.0\nrequires: [wifi.signal]\noptional: [haptics]',
+      ),
+      uses,
+    );
+    expect(r.ok, isTrue);
+    expect(r.unused, isEmpty);
+  });
+
+  test('package leaves out engine files a WebView never loads', () {
+    final site = Directory('${tmp.path}/site')..createSync();
+    for (final f in [
+      'index.html',
+      'main.dart.js',
+      'version.json',
+      'canvaskit/canvaskit.js',
+      'canvaskit/canvaskit.wasm',
+      'canvaskit/canvaskit.js.symbols',
+      'canvaskit/skwasm.wasm',
+      'canvaskit/chromium/canvaskit.wasm',
+      'canvaskit/chromium/canvaskit.js',
+      'canvaskit/wimp.wasm',
+    ]) {
+      File('${site.path}/$f')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(f);
+    }
+    List<String> names(bool trim) => ZipDecoder()
+        .decodeBytes(
+          packageApp(
+            manifest: LiteStoreManifest.parse(_yaml),
+            site: site,
+            out: Directory('${tmp.path}/o-$trim'),
+            trimFlutterEngine: trim,
+          ).zip.readAsBytesSync(),
+        )
+        .map((f) => f.name)
+        .toList();
+    expect(names(true)..sort(), [
+      'canvaskit/canvaskit.js',
+      'canvaskit/canvaskit.wasm',
+      'canvaskit/chromium/canvaskit.js',
+      'canvaskit/chromium/canvaskit.wasm',
+      'index.html',
+      'litestore.json',
+      'main.dart.js',
+    ]);
+    expect(names(false), contains('canvaskit/skwasm.wasm'));
+  });
+
   test('package makes a reproducible zip with listing', () {
     final site = Directory('${tmp.path}/web')..createSync();
     File('${site.path}/index.html').writeAsStringSync('<html></html>');

@@ -41,6 +41,8 @@ const _byApi = {
 };
 
 const _bySubApi = {
+  'wifi.get': Feature.wifi,
+  'wifi.signal': Feature.wifiSignal,
   'clipboard.read': Feature.clipboardRead,
   'clipboard.write': Feature.clipboardWrite,
   'auth.token': Feature.authToken,
@@ -53,7 +55,10 @@ const _profile = {
   'email': Feature.profileEmail,
 };
 
-/// Features the Dart code under [dir] uses through LiteHost.
+/// Dart, and JavaScript for apps that call `window.LiteHost` directly.
+const _scanned = ['.dart', '.js', '.mjs', '.html'];
+
+/// Features the code under [dir] uses through LiteHost.
 List<FeatureUse> scanUses(Directory dir) {
   final uses = <FeatureUse>[];
   if (!dir.existsSync()) return uses;
@@ -61,7 +66,7 @@ List<FeatureUse> scanUses(Directory dir) {
       dir
           .listSync(recursive: true)
           .whereType<File>()
-          .where((f) => f.path.endsWith('.dart'))
+          .where((f) => _scanned.any(f.path.endsWith))
           .toList()
         ..sort((a, b) => a.path.compareTo(b.path));
   for (final f in files) {
