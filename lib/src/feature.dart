@@ -22,6 +22,11 @@ enum Feature {
   profilePhone('profile.phone', asksUser: true),
   profileEmail('profile.email', asksUser: true),
   profilePhoto('profile.photo', asksUser: true),
+
+  /// Only for people logged in to SetLiteWeb: put it in `requires`.
+  /// Opened signed out, the host asks them to log in first, then opens the
+  /// app. Nothing to call; ask for profile details with `profile.get`.
+  account('account'),
   notifications('notifications', asksUser: true),
   authToken('auth.token', asksUser: true),
   authBrowser('auth.browser'),

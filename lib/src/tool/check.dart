@@ -124,7 +124,8 @@ CheckResult checkUses(LiteStoreManifest manifest, List<FeatureUse> uses) {
     ],
     [
       for (final id in declared)
-        if (!used.contains(id) && Feature.fromId(id) != null) id,
+        // `account` is a requirement, not something code calls.
+        if (!used.contains(id) && id != 'account' && Feature.fromId(id) != null) id,
     ],
   );
 }

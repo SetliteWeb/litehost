@@ -1,3 +1,14 @@
+## 1.5.0
+
+For SetLiteWeb 1.6.13+:
+
+- Feature `account` (no question): put `requires: [account]` in
+  litestore.yaml for apps only logged-in people may use. Opened signed out,
+  SetLiteWeb shows its login (or sign-up) and then opens the app, at the
+  shared page if any. Older SetLiteWeb versions don't list such apps.
+  Profile details still come from `LiteHost.profile.get`.
+- `litehost:check` knows `account` and never calls it unused.
+
 ## 1.4.0
 
 For SetLiteWeb 1.6.11+:

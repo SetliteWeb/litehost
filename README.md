@@ -99,6 +99,7 @@ The output in `build/litestore/` is what you upload to LiteStore.
 | `LiteHost.pip.enter()` / `auto()` | `pip` | no (1.6.7+) |
 | `LiteHost.clipboard.read()` / `write()` | `clipboard.read` / `clipboard.write` | read only |
 | `LiteHost.profile.get({...})` | `profile.name` / `.phone` / `.email` / `.photo` | yes, per field |
+| (nothing to call) | `account` in **requires** | no: the host logs them in first |
 | `LiteHost.auth.token()` | `auth.token` | yes |
 | `LiteHost.auth.browser(url)` | `auth.browser` | no (browser sign-in) |
 | `LiteHost.scanner.scan()` | `scanner` | no (host screen) |

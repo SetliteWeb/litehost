@@ -68,6 +68,19 @@ final e = ProfileField.values;
     expect(r.ok, isFalse);
   });
 
+  test('account is a requirement, never unused or unknown', () {
+    final m = LiteStoreManifest.parse("""
+id: com.example.club
+name: Club
+version: 1.0.0
+requires: [account]
+""");
+    expect(m.warnings().join(), isNot(contains('account')));
+    final r = checkUses(m, const []);
+    expect(r.unused, isNot(contains('account')));
+    expect(r.ok, isTrue);
+  });
+
   test('check reads JavaScript too, and tells wifi.get from wifi.signal', () {
     final web = Directory('${tmp.path}/web')..createSync();
     File('${web.path}/index.html').writeAsStringSync('''
