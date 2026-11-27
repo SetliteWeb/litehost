@@ -102,7 +102,7 @@ The output in `build/litestore/` is what you upload to LiteStore.
 | (nothing to call) | `account` in **requires** | no: the host logs them in first |
 | `LiteHost.auth.token()` | `auth.token` | yes |
 | `LiteHost.auth.browser(url)` | `auth.browser` | no (browser sign-in) |
-| `LiteHost.scanner.scan()` | `scanner` | no (host screen) |
+| `LiteHost.scanner.scan()` | `scanner` | no (host screen; QR, or product barcodes with `formats:` on 1.6.16+) |
 | `LiteHost.image.pick()` | `image.pick` | no (host screen) |
 | `LiteHost.share()` / `openUrl()` | `share` / `open.url` | no |
 | `LiteHost.haptics()` / `keepScreenOn()` | `haptics` / `screen.keepOn` | no |

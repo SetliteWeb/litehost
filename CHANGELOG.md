@@ -1,3 +1,13 @@
+## 1.6.0
+
+For SetLiteWeb 1.6.16+:
+
+- `LiteHost.scanner.scan(formats: ...)` reads barcodes too: pass
+  `CodeFormat.products` for book and shop barcodes (ISBN/EAN-13, EAN-8,
+  UPC-A, UPC-E), or any mix of `CodeFormat` values. The default is still
+  QR only. Older SetLiteWeb versions read QR whatever you ask for.
+- `MockHost` answers a barcode-only scan with an ISBN (9780141439518).
+
 ## 1.5.0
 
 For SetLiteWeb 1.6.13+:

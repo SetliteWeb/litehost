@@ -404,7 +404,15 @@ class MockHost implements HostTransport {
       'auth.browser',
       (_) => {'url': 'setliteweb-litestore://callback?code=mock-code'},
     );
-    handle('scanner.scan', (_) => {'text': 'MOCK-QR-CODE'});
+    // QR unless the app asked only for barcodes; then a valid EAN-13 (an ISBN).
+    handle('scanner.scan', (p) {
+      final formats = asList(p['formats']);
+      return {
+        'text': formats.isEmpty || formats.contains('qr')
+            ? 'MOCK-QR-CODE'
+            : '9780141439518',
+      };
+    });
     // A 1x1 transparent PNG.
     handle(
       'image.pick',

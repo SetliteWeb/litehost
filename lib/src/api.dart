@@ -416,9 +416,24 @@ class AuthApi {
 class ScannerApi {
   const ScannerApi._();
 
-  /// Opens SetLiteWeb's QR scanner. Null if the user backs out.
-  Future<String?> scan({String? prompt}) async => asNullableString(
-    asMap(await _call('scanner.scan', {'prompt': ?prompt}))?['text'],
+  /// Opens SetLiteWeb's scanner and returns the first code it reads. Null
+  /// if the user backs out.
+  ///
+  /// [formats] picks what it reads: QR codes only by default. Pass
+  /// [CodeFormat.products] for the barcodes printed on books and shop goods
+  /// (ISBN/EAN, UPC), or any mix. SetLiteWeb before 1.6.16 reads QR only,
+  /// whatever you ask for, so keep a way to type or pick the item.
+  Future<String?> scan({
+    String? prompt,
+    Set<CodeFormat> formats = const {CodeFormat.qr},
+  }) async => asNullableString(
+    asMap(
+      await _call('scanner.scan', {
+        'prompt': ?prompt,
+        if (!(formats.length == 1 && formats.first == CodeFormat.qr))
+          'formats': [for (final f in formats) f.name],
+      }),
+    )?['text'],
   );
 }
 

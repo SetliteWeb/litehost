@@ -32,6 +32,10 @@ void main() {
     expect((await LiteHost.device.info()).bridgeVersion, 1);
     expect((await LiteHost.wifi.get()).ssid, 'MockWiFi');
     expect(await LiteHost.scanner.scan(), 'MOCK-QR-CODE');
+    expect(
+      await LiteHost.scanner.scan(formats: CodeFormat.products),
+      '9780141439518',
+    );
     expect((await LiteHost.image.pick())!.mime, 'image/png');
     expect((await LiteHost.auth.token()).expiresIn, const Duration(minutes: 5));
     expect(

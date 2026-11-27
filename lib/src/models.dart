@@ -229,6 +229,31 @@ class PickedImage {
 
 enum HapticStyle { light, medium, heavy, selection }
 
+/// What [ScannerApi.scan] reads.
+enum CodeFormat {
+  qr,
+  dataMatrix,
+  pdf417,
+  aztec,
+
+  /// 13-digit product barcode; books carry their ISBN as one (978/979...).
+  ean13,
+  ean8,
+  upcA,
+  upcE,
+  code128,
+  code39,
+  code93,
+  codabar,
+  itf;
+
+  /// The barcodes printed on books and shop goods.
+  static const products = {ean13, ean8, upcA, upcE};
+
+  /// Everything the scanner knows.
+  static const all = {...CodeFormat.values};
+}
+
 /// The contact the user picked; nothing else from their address book.
 class PickedContact {
   const PickedContact({required this.name, this.phone, this.phones = const []});

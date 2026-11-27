@@ -189,6 +189,7 @@ class _LabScreenState extends State<LabScreen> {
       ]),
       Test('scanner', 'QR scanner', 'scanner', Icons.qr_code_scanner_rounded, "The host's scanner screen. Scan any QR or barcode.", [
         ('Scan', () async => (await LiteHost.scanner.scan(prompt: 'Scan any code to test')) ?? 'backed out (null)'),
+        ('Scan a barcode', () async => (await LiteHost.scanner.scan(prompt: 'Scan a book or product barcode', formats: CodeFormat.products)) ?? 'backed out (null)'),
       ]),
     ]),
     ('You', [
